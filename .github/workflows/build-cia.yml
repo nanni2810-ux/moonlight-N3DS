@@ -14,11 +14,8 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Apply local 3DS cleanup fixes
-        run: git apply patches/moonlight-n3ds-local-fixes.patch
-
-      - name: Apply moonlight-common exit fix
-        run: git -C third_party/moonlight-common-c apply ../../patches/moonlight-common-exit-freeze.patch
+      - name: Apply exit-freeze fixes
+        run: python3 ci/apply_exit_fix.py
 
       - name: Build Dockerfile
         run: docker build --network=host -t moonlight-n3ds .
