@@ -1,0 +1,39 @@
+diff --git a/src/audio/n3ds_audio.cpp b/src/audio/n3ds_audio.cpp
+--- a/src/audio/n3ds_audio.cpp
++++ b/src/audio/n3ds_audio.cpp
+@@ -51,7 +51,7 @@ static int n3ds_renderer_init(int audioConfiguration,
+         return -1;
+     }
+ 
+-    u8 *audioBuffer = (u8 *)linearAlloc(bytes_per_frame * WAVEBUF_SIZE);
++    audioBuffer = (u8 *)linearAlloc(bytes_per_frame * WAVEBUF_SIZE);
+     if (audioBuffer == NULL)
+         return -1;
+     memset(audioBuffer, 0, bytes_per_frame * WAVEBUF_SIZE);
+@@ -82,7 +82,7 @@ static void n3ds_renderer_cleanup() {
+     ndspChnWaveBufClear(0);
+     ndspExit();
+     if (audioBuffer != NULL) {
+-        free(audioBuffer);
++        linearFree(audioBuffer);
+         audioBuffer = NULL;
+     }
+     printf("Audio renderer shutdown successfully\n");
+diff --git a/src/video/n3ds_video_mvd.cpp b/src/video/n3ds_video_mvd.cpp
+--- a/src/video/n3ds_video_mvd.cpp
++++ b/src/video/n3ds_video_mvd.cpp
+@@ -79,11 +79,16 @@ MvdDecoder::MvdDecoder(int videoFormat, int width, int height, int redrawRate,
+ // This function must be called after
+ // decoding is finished
+ MvdDecoder::~MvdDecoder() {
++    printf("[exitfix] MVD cleanup: y2rExit begin\n");
+     y2rExit();
++    printf("[exitfix] MVD cleanup: y2rExit complete\n");
++    printf("[exitfix] MVD cleanup: mvdstdExit begin\n");
+     mvdstdExit();
++    printf("[exitfix] MVD cleanup: mvdstdExit complete\n");
+     linearFree(nal_unit_buffer);
+     linearFree(rgb_img_buffer);
+-    printf("Video decoder shutdown successfully\n");
++    printf("[exitfix] Video decoder shutdown successfully\n");
+ }
