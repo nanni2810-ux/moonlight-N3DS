@@ -1,0 +1,73 @@
+diff --git a/src/VideoStream.c b/src/VideoStream.c
+index 402b056..0000000 100644
+--- a/src/VideoStream.c
++++ b/src/VideoStream.c
+@@ -222,6 +222,10 @@ void stopVideoStream(void) {
+         Limelog("No video traffic was ever received from the host!\n");
+     }
+ 
++#ifdef __3DS__
++    printf("[exitfix] stopVideoStream begin\n");
++#endif
++
+     VideoCallbacks.stop();
+ 
+     // Wake up client code that may be waiting on the decode unit queue
+@@ -235,16 +239,45 @@ void stopVideoStream(void) {
+         PltInterruptThread(&decoderThread);
+     }
+ 
++#ifdef __3DS__
++    // libctru does not support SO_RCVTIMEO, so the receive thread polls a UDP
++    // socket. Closing it before joining makes the shutdown deterministic and
++    // prevents a stuck receiver from blocking PltJoinThread() forever.
++    if (rtpSocket != INVALID_SOCKET) {
++        printf("[exitfix] closing video RTP socket\n");
++        closeSocket(rtpSocket);
++        rtpSocket = INVALID_SOCKET;
++    }
++#endif
++
+     if (firstFrameSocket != INVALID_SOCKET) {
+         shutdownTcpSocket(firstFrameSocket);
+     }
+ 
++#ifdef __3DS__
++    printf("[exitfix] joining video ping thread\n");
++#endif
+     PltJoinThread(&udpPingThread);
++#ifdef __3DS__
++    printf("[exitfix] video ping thread joined\n");
++    printf("[exitfix] joining video receive thread\n");
++#endif
+     PltJoinThread(&receiveThread);
++#ifdef __3DS__
++    printf("[exitfix] video receive thread joined\n");
++#endif
+     if ((VideoCallbacks.capabilities & (CAPABILITY_DIRECT_SUBMIT | CAPABILITY_PULL_RENDERER)) == 0) {
++#ifdef __3DS__
++        printf("[exitfix] joining video decoder thread\n");
++#endif
+         PltJoinThread(&decoderThread);
++#ifdef __3DS__
++        printf("[exitfix] video decoder thread joined\n");
++#endif
+     }
+ 
+     if (firstFrameSocket != INVALID_SOCKET) {
+@@ -252,10 +285,15 @@ void stopVideoStream(void) {
+         firstFrameSocket = INVALID_SOCKET;
+     }
+     if (rtpSocket != INVALID_SOCKET) {
+         closeSocket(rtpSocket);
+         rtpSocket = INVALID_SOCKET;
+     }
+ 
++#ifdef __3DS__
++    printf("[exitfix] video callback cleanup begin\n");
++#endif
+     VideoCallbacks.cleanup();
++#ifdef __3DS__
++    printf("[exitfix] video callback cleanup complete\n");
++#endif
+ }
