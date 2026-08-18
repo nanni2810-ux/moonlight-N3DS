@@ -34,4 +34,4 @@ Verified on a real New 2DS XL on 2026-08-18:
 5. Audio/video/controls after reconnect: PASS.
 6. Exit Moonlight completely to the 2DS HOME menu: PASS, console remains responsive.
 
-This changes the observed behavior from an indefinite/forced-reboot exit to repeated clean exits in under 5 seconds.
+This changes the observed behavior from an indefinite/forced-reboot exit to repeated clean exits in under 5 seconds. This is a hardware-verified fix candidate for issue #116; wider testing on additional New 3DS family devices is still desirable before an upstream release.
