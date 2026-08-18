@@ -1,17 +1,37 @@
 # Exit freeze hardware test
 
-Branch: `fix/exit-freeze-v1`
+Branch: `fix/exit-freeze-v2-review`
 
-Purpose: diagnose and fix the New 3DS / New 2DS XL freeze when leaving a Moonlight stream.
+Purpose: fix the New 3DS / New 2DS XL freeze and long delay when leaving a Moonlight stream.
 
-The test build adds shutdown diagnostics, closes the 3DS video RTP socket before joining the video receive thread, and fixes the local audio linear buffer ownership/free mismatch.
+## Hardware results
 
-## Hardware test
+### v1 — PASS (freeze removed)
 
-1. Install the CIA produced by this branch.
-2. Start a normal stream and let it run for at least 30 seconds with audio and video active.
-3. Exit the stream using the normal Moonlight exit action.
-4. If the app returns to its menu or exits normally, repeat the test 3 times.
-5. If it freezes, photograph the last `[exitfix]` line visible on screen.
+Real New 2DS XL hardware testing confirmed that the original permanent hang was removed. Shutdown progressed through the Moonlight video teardown and returned to the server list instead of requiring a forced power-off. Diagnostics isolated the remaining delay inside `mvdstdExit()`.
 
-Do not merge this branch until the shutdown path is verified on real hardware.
+Observed shutdown sequence reached:
+
+- video callback stop complete
+- depacketizer stop complete
+- video ping thread joined
+- video RTP socket closed
+- video receive thread joined
+- MVD cleanup / `mvdstdExit()`
+
+The remaining wait was approximately one minute inside `mvdstdExit()`.
+
+### v2 — HARDWARE PASS
+
+v2 keeps the MVD service initialized for the lifetime of the Moonlight process instead of calling `mvdstdExit()` after each stream. Per-stream decoder/output buffers are still released, and the v1 RTP receive-thread wakeup and audio linear-buffer ownership fixes are retained.
+
+Verified on a real New 2DS XL on 2026-08-18:
+
+1. Start stream: PASS.
+2. Exit stream: PASS, returns to server list in less than 5 seconds.
+3. Reconnect without closing Moonlight: PASS.
+4. Repeat stream/exit multiple times: PASS.
+5. Audio/video/controls after reconnect: PASS.
+6. Exit Moonlight completely to the 2DS HOME menu: PASS, console remains responsive.
+
+This changes the observed behavior from an indefinite/forced-reboot exit to repeated clean exits in under 5 seconds. This is a hardware-verified fix candidate for issue #116; wider testing on additional New 3DS family devices is still desirable before an upstream release.
