@@ -14,7 +14,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Apply exit-freeze fixes
+      - name: Apply exit-freeze fixes v2
         run: python3 ci/apply_exit_fix.py
 
       - name: Build Dockerfile
@@ -26,7 +26,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-exitfix
+          name: ${{ github.event.repository.name }}-exitfix-v2
           path: |
             ./*.cia
             ./*.3dsx
