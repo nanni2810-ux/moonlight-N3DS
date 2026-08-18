@@ -1,5 +1,4 @@
 diff --git a/src/VideoStream.c b/src/VideoStream.c
-index 402b056..0000000 100644
 --- a/src/VideoStream.c
 +++ b/src/VideoStream.c
 @@ -222,6 +222,10 @@ void stopVideoStream(void) {
